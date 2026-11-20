@@ -108,6 +108,14 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), request);
     }
 
+    // ---------- 401 Unauthorized ----------
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(
+            InvalidCredentialsException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
     // ---------- 500 Anything else ----------
 
     @ExceptionHandler(Exception.class)
