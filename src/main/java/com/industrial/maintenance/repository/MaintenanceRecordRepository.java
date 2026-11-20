@@ -16,4 +16,7 @@ public interface MaintenanceRecordRepository extends JpaRepository<MaintenanceRe
 
     @Query("SELECT SUM(r.totalCost) FROM MaintenanceRecord r WHERE r.equipment.id = :equipmentId")
     BigDecimal sumTotalCostByEquipmentId(@Param("equipmentId") Long equipmentId);
+
+    @Query("SELECT SUM(r.totalCost) FROM MaintenanceRecord r")
+    BigDecimal sumAllTotalCost();
 }

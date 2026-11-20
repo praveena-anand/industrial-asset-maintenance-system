@@ -13,4 +13,6 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
     List<MaintenanceSchedule> findByActiveTrueAndNextDueDateBefore(LocalDate date);
 
     List<MaintenanceSchedule> findByActiveTrueAndNextDueDateBetween(LocalDate start, LocalDate end);
+
+    long countByActiveTrueAndNextDueDateBefore(LocalDate date);
 }
