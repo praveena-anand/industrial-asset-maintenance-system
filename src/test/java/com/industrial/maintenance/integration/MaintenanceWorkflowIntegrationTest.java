@@ -79,7 +79,7 @@ class MaintenanceWorkflowIntegrationTest {
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("OPERATIONAL"))
-                .andExpect(jsonPath("$.factory.factoryCode").value("FAC-TEST"));
+                .andExpect(jsonPath("$.factoryCode").value("FAC-TEST"));
 
         assertTrue(equipmentRepository.existsByEquipmentCode("EQ9001"));
 
