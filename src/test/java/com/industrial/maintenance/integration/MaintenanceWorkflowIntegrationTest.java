@@ -79,7 +79,7 @@ class MaintenanceWorkflowIntegrationTest {
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("OPERATIONAL"))
-                .andExpect(jsonPath("$.factory.factoryCode").value("FAC-TEST"));
+                .andExpect(jsonPath("$.factoryCode").value("FAC-TEST"));
 
         assertTrue(equipmentRepository.existsByEquipmentCode("EQ9001"));
 
@@ -170,6 +170,22 @@ class MaintenanceWorkflowIntegrationTest {
         // ...and without any token the request is rejected
         mockMvc.perform(get("/api/equipment"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void createFactory_cannotOverwriteAnExistingFactoryById() throws Exception {
+        String attack = """
+                { "id": %d, "factoryCode": "FAC-OTHER", "name": "Overwritten", "city": "Elsewhere" }
+                """.formatted(factory.getId());
+
+        mockMvc.perform(post("/api/factories")
+                .with(asRole("ADMIN"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(attack));
+
+        Factory original = factoryRepository.findById(factory.getId()).orElseThrow();
+        assertEquals("FAC-TEST", original.getFactoryCode());
+        assertEquals("Test Plant", original.getName());
     }
 
     private Employee createEmployee(String code, String email, Role role) {

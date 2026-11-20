@@ -1,7 +1,7 @@
 package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.dto.EquipmentRequest;
-import com.industrial.maintenance.entity.Equipment;
+import com.industrial.maintenance.dto.EquipmentResponse;
 import com.industrial.maintenance.service.EquipmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,14 +34,16 @@ public class EquipmentController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Equipment register(@Valid @RequestBody EquipmentRequest request) {
-        return equipmentService.registerEquipment(request);
+    public EquipmentResponse register(@Valid @RequestBody EquipmentRequest request) {
+        return EquipmentResponse.from(equipmentService.registerEquipment(request));
     }
 
     @Operation(summary = "List all equipment")
     @GetMapping
-    public List<Equipment> getAll() {
-        return equipmentService.getAllEquipment();
+    public List<EquipmentResponse> getAll() {
+        return equipmentService.getAllEquipment().stream()
+                .map(EquipmentResponse::from)
+                .toList();
     }
 
     @Operation(summary = "Get equipment by ID")
@@ -50,8 +52,8 @@ public class EquipmentController {
             @ApiResponse(responseCode = "404", description = "Equipment not found")
     })
     @GetMapping("/{id}")
-    public Equipment getById(@PathVariable Long id) {
-        return equipmentService.getEquipmentById(id);
+    public EquipmentResponse getById(@PathVariable Long id) {
+        return EquipmentResponse.from(equipmentService.getEquipmentById(id));
     }
 
     @Operation(summary = "Get equipment by equipment code")
@@ -60,8 +62,8 @@ public class EquipmentController {
             @ApiResponse(responseCode = "404", description = "Equipment not found")
     })
     @GetMapping("/code/{code}")
-    public Equipment getByCode(@PathVariable String code) {
-        return equipmentService.getByEquipmentCode(code);
+    public EquipmentResponse getByCode(@PathVariable String code) {
+        return EquipmentResponse.from(equipmentService.getByEquipmentCode(code));
     }
 
     @Operation(summary = "Get equipment by serial number")
@@ -70,8 +72,8 @@ public class EquipmentController {
             @ApiResponse(responseCode = "404", description = "Equipment not found")
     })
     @GetMapping("/serial/{serialNumber}")
-    public Equipment getBySerial(@PathVariable String serialNumber) {
-        return equipmentService.getBySerialNumber(serialNumber);
+    public EquipmentResponse getBySerial(@PathVariable String serialNumber) {
+        return EquipmentResponse.from(equipmentService.getBySerialNumber(serialNumber));
     }
 
     @Operation(summary = "Update equipment details")
@@ -82,8 +84,8 @@ public class EquipmentController {
             @ApiResponse(responseCode = "409", description = "Duplicate equipment code or serial number")
     })
     @PutMapping("/{id}")
-    public Equipment update(@PathVariable Long id, @Valid @RequestBody EquipmentRequest request) {
-        return equipmentService.updateEquipment(id, request);
+    public EquipmentResponse update(@PathVariable Long id, @Valid @RequestBody EquipmentRequest request) {
+        return EquipmentResponse.from(equipmentService.updateEquipment(id, request));
     }
 
     @Operation(summary = "Retire equipment",

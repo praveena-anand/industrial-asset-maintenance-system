@@ -1,14 +1,14 @@
 package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.dto.EmployeeRequest;
-import com.industrial.maintenance.entity.Employee;
+import com.industrial.maintenance.dto.EmployeeResponse;
+import com.industrial.maintenance.dto.SetPasswordRequest;
 import com.industrial.maintenance.entity.Role;
 import com.industrial.maintenance.service.EmployeeService;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import com.industrial.maintenance.dto.SetPasswordRequest;
 
 import java.util.List;
 
@@ -25,24 +25,26 @@ public class EmployeeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Employee create(@Valid @RequestBody EmployeeRequest request) {
-        return employeeService.createEmployee(request);
+    public EmployeeResponse create(@Valid @RequestBody EmployeeRequest request) {
+        return EmployeeResponse.from(employeeService.createEmployee(request));
     }
 
     @GetMapping
-    public List<Employee> getAll(@RequestParam(required = false) Role role,
-                                 @RequestParam(required = false) String name) {
-        return employeeService.getEmployees(role, name);
+    public List<EmployeeResponse> getAll(@RequestParam(required = false) Role role,
+                                         @RequestParam(required = false) String name) {
+        return employeeService.getEmployees(role, name).stream()
+                .map(EmployeeResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Employee getById(@PathVariable Long id) {
-        return employeeService.getEmployeeById(id);
+    public EmployeeResponse getById(@PathVariable Long id) {
+        return EmployeeResponse.from(employeeService.getEmployeeById(id));
     }
 
     @PutMapping("/{id}")
-    public Employee update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
-        return employeeService.updateEmployee(id, request);
+    public EmployeeResponse update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
+        return EmployeeResponse.from(employeeService.updateEmployee(id, request));
     }
 
     @DeleteMapping("/{id}")

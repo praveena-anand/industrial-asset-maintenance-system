@@ -1,7 +1,7 @@
 package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.dto.MaintenanceScheduleRequest;
-import com.industrial.maintenance.entity.MaintenanceSchedule;
+import com.industrial.maintenance.dto.MaintenanceScheduleResponse;
 import com.industrial.maintenance.service.MaintenanceScheduleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,38 +23,44 @@ public class MaintenanceScheduleController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public MaintenanceSchedule create(@Valid @RequestBody MaintenanceScheduleRequest request) {
-        return scheduleService.createSchedule(request);
+    public MaintenanceScheduleResponse create(@Valid @RequestBody MaintenanceScheduleRequest request) {
+        return MaintenanceScheduleResponse.from(scheduleService.createSchedule(request));
     }
 
     @GetMapping
-    public List<MaintenanceSchedule> getAll(@RequestParam(required = false) Long equipmentId) {
-        return scheduleService.getSchedules(equipmentId);
+    public List<MaintenanceScheduleResponse> getAll(@RequestParam(required = false) Long equipmentId) {
+        return scheduleService.getSchedules(equipmentId).stream()
+                .map(MaintenanceScheduleResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public MaintenanceSchedule getById(@PathVariable Long id) {
-        return scheduleService.getScheduleById(id);
+    public MaintenanceScheduleResponse getById(@PathVariable Long id) {
+        return MaintenanceScheduleResponse.from(scheduleService.getScheduleById(id));
     }
 
     @GetMapping("/overdue")
-    public List<MaintenanceSchedule> getOverdue() {
-        return scheduleService.getOverdueSchedules();
+    public List<MaintenanceScheduleResponse> getOverdue() {
+        return scheduleService.getOverdueSchedules().stream()
+                .map(MaintenanceScheduleResponse::from)
+                .toList();
     }
 
     @GetMapping("/upcoming")
-    public List<MaintenanceSchedule> getUpcoming(@RequestParam(defaultValue = "30") int days) {
-        return scheduleService.getUpcomingSchedules(days);
+    public List<MaintenanceScheduleResponse> getUpcoming(@RequestParam(defaultValue = "30") int days) {
+        return scheduleService.getUpcomingSchedules(days).stream()
+                .map(MaintenanceScheduleResponse::from)
+                .toList();
     }
 
     @PatchMapping("/{id}/assign")
-    public MaintenanceSchedule assign(@PathVariable Long id, @RequestParam Long technicianId) {
-        return scheduleService.assignTechnician(id, technicianId);
+    public MaintenanceScheduleResponse assign(@PathVariable Long id, @RequestParam Long technicianId) {
+        return MaintenanceScheduleResponse.from(scheduleService.assignTechnician(id, technicianId));
     }
 
     @PostMapping("/{id}/complete")
-    public MaintenanceSchedule complete(@PathVariable Long id) {
-        return scheduleService.completeSchedule(id);
+    public MaintenanceScheduleResponse complete(@PathVariable Long id) {
+        return MaintenanceScheduleResponse.from(scheduleService.completeSchedule(id));
     }
 
     @DeleteMapping("/{id}")

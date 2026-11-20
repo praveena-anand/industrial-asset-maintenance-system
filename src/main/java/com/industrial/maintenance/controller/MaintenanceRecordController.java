@@ -2,7 +2,7 @@ package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.dto.EquipmentCostSummary;
 import com.industrial.maintenance.dto.MaintenanceRecordRequest;
-import com.industrial.maintenance.entity.MaintenanceRecord;
+import com.industrial.maintenance.dto.MaintenanceRecordResponse;
 import com.industrial.maintenance.service.MaintenanceRecordService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,18 +24,20 @@ public class MaintenanceRecordController {
 
     @PostMapping("/maintenance-records")
     @ResponseStatus(HttpStatus.CREATED)
-    public MaintenanceRecord create(@Valid @RequestBody MaintenanceRecordRequest request) {
-        return recordService.createRecord(request);
+    public MaintenanceRecordResponse create(@Valid @RequestBody MaintenanceRecordRequest request) {
+        return MaintenanceRecordResponse.from(recordService.createRecord(request));
     }
 
     @GetMapping("/maintenance-records/{id}")
-    public MaintenanceRecord getById(@PathVariable Long id) {
-        return recordService.getRecordById(id);
+    public MaintenanceRecordResponse getById(@PathVariable Long id) {
+        return MaintenanceRecordResponse.from(recordService.getRecordById(id));
     }
 
     @GetMapping("/equipment/{equipmentId}/maintenance-history")
-    public List<MaintenanceRecord> getHistory(@PathVariable Long equipmentId) {
-        return recordService.getHistory(equipmentId);
+    public List<MaintenanceRecordResponse> getHistory(@PathVariable Long equipmentId) {
+        return recordService.getHistory(equipmentId).stream()
+                .map(MaintenanceRecordResponse::from)
+                .toList();
     }
 
     @GetMapping("/equipment/{equipmentId}/maintenance-cost")

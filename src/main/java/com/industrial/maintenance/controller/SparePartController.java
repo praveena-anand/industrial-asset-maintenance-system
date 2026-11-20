@@ -1,6 +1,7 @@
 package com.industrial.maintenance.controller;
 
-import com.industrial.maintenance.entity.SparePart;
+import com.industrial.maintenance.dto.SparePartRequest;
+import com.industrial.maintenance.dto.SparePartResponse;
 import com.industrial.maintenance.service.SparePartService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,17 +23,19 @@ public class SparePartController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SparePart create(@Valid @RequestBody SparePart part) {
-        return sparePartService.createPart(part);
+    public SparePartResponse create(@Valid @RequestBody SparePartRequest request) {
+        return SparePartResponse.from(sparePartService.createPart(request));
     }
 
     @GetMapping
-    public List<SparePart> getAll() {
-        return sparePartService.getAllParts();
+    public List<SparePartResponse> getAll() {
+        return sparePartService.getAllParts().stream()
+                .map(SparePartResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public SparePart getById(@PathVariable Long id) {
-        return sparePartService.getPartById(id);
+    public SparePartResponse getById(@PathVariable Long id) {
+        return SparePartResponse.from(sparePartService.getPartById(id));
     }
 }
