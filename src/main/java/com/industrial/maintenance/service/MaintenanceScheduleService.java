@@ -41,7 +41,7 @@ public class MaintenanceScheduleService {
         schedule.setNextDueDate(request.nextDueDate());
 
         if (request.technicianId() != null) {
-            schedule.setAssignedTechnician(findValidTechnician(request.technicianId()));
+            schedule.setAssignedTechnician(employeeService.getActiveTechnician(request.technicianId()));
         }
         return scheduleRepository.save(schedule);
     }
@@ -72,7 +72,7 @@ public class MaintenanceScheduleService {
     public MaintenanceSchedule assignTechnician(Long id, Long technicianId) {
         MaintenanceSchedule schedule = getScheduleById(id);
         ensureActive(schedule);
-        schedule.setAssignedTechnician(findValidTechnician(technicianId));
+        schedule.setAssignedTechnician(employeeService.getActiveTechnician(technicianId));
         return scheduleRepository.save(schedule);
     }
 
@@ -98,16 +98,5 @@ public class MaintenanceScheduleService {
             throw new BusinessRuleException(
                     "Maintenance schedule " + schedule.getId() + " is inactive");
         }
-    }
-
-    private Employee findValidTechnician(Long employeeId) {
-        Employee employee = employeeService.getEmployeeById(employeeId);
-        if (employee.getRole() != Role.TECHNICIAN) {
-            throw new BusinessRuleException(employee.getFullName() + " is not a technician");
-        }
-        if (employee.getStatus() != EmployeeStatus.ACTIVE) {
-            throw new BusinessRuleException(employee.getFullName() + " is not an active employee");
-        }
-        return employee;
     }
 }

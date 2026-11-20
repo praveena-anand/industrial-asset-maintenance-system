@@ -79,6 +79,11 @@ public class EquipmentService {
         return equipmentRepository.save(existing);
     }
 
+    public void updateStatus(Equipment equipment, EquipmentStatus status) {
+        equipment.setStatus(status);
+        equipmentRepository.save(equipment);
+    }
+
     public void retireEquipment(Long id) {
         Equipment equipment = getEquipmentById(id);
         equipment.setStatus(EquipmentStatus.RETIRED);

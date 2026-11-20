@@ -8,6 +8,7 @@ import com.industrial.maintenance.exception.DuplicateResourceException;
 import com.industrial.maintenance.exception.ResourceNotFoundException;
 import com.industrial.maintenance.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
+import com.industrial.maintenance.exception.BusinessRuleException;
 
 import java.util.List;
 
@@ -52,6 +53,17 @@ public class EmployeeService {
         return employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Employee with ID " + id + " not found"));
+    }
+
+    public Employee getActiveTechnician(Long id) {
+        Employee employee = getEmployeeById(id);
+        if (employee.getRole() != Role.TECHNICIAN) {
+            throw new BusinessRuleException(employee.getFullName() + " is not a technician");
+        }
+        if (employee.getStatus() != EmployeeStatus.ACTIVE) {
+            throw new BusinessRuleException(employee.getFullName() + " is not an active employee");
+        }
+        return employee;
     }
 
     public Employee updateEmployee(Long id, EmployeeRequest request) {
