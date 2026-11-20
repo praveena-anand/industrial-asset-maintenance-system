@@ -3,12 +3,14 @@ package com.industrial.maintenance.controller;
 import com.industrial.maintenance.dto.MaintenanceScheduleRequest;
 import com.industrial.maintenance.entity.MaintenanceSchedule;
 import com.industrial.maintenance.service.MaintenanceScheduleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Maintenance Schedules", description = "Plan preventive maintenance and track overdue tasks")
 @RestController
 @RequestMapping("/api/maintenance-schedules")
 public class MaintenanceScheduleController {

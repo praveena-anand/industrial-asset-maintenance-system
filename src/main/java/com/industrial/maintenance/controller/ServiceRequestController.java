@@ -5,12 +5,14 @@ import com.industrial.maintenance.dto.ServiceRequestRequest;
 import com.industrial.maintenance.entity.ServiceRequest;
 import com.industrial.maintenance.entity.ServiceRequestStatus;
 import com.industrial.maintenance.service.ServiceRequestService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Service Requests", description = "Report breakdowns and manage the repair workflow")
 @RestController
 @RequestMapping("/api/service-requests")
 public class ServiceRequestController {

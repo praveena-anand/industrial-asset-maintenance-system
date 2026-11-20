@@ -4,12 +4,14 @@ import com.industrial.maintenance.dto.EquipmentCostSummary;
 import com.industrial.maintenance.dto.MaintenanceRecordRequest;
 import com.industrial.maintenance.entity.MaintenanceRecord;
 import com.industrial.maintenance.service.MaintenanceRecordService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Maintenance History", description = "Record completed work, parts used and costs")
 @RestController
 @RequestMapping("/api")
 public class MaintenanceRecordController {

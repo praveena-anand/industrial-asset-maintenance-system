@@ -2,12 +2,14 @@ package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.entity.SparePart;
 import com.industrial.maintenance.service.SparePartService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Spare Parts", description = "Spare parts catalogue")
 @RestController
 @RequestMapping("/api/spare-parts")
 public class SparePartController {

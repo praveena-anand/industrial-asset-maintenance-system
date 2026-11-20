@@ -5,11 +5,13 @@ import com.industrial.maintenance.entity.Employee;
 import com.industrial.maintenance.entity.Role;
 import com.industrial.maintenance.service.EmployeeService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Employees", description = "Manage employees, roles and factory assignments")
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
