@@ -1,0 +1,6 @@
+target/
+logs/
+.idea/
+.git/
+*.iml
+hs_err_pid*.log
