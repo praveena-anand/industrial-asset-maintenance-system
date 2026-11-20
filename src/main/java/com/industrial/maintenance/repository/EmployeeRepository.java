@@ -5,6 +5,7 @@ import com.industrial.maintenance.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
@@ -19,4 +20,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     boolean existsByEmployeeCodeAndIdNot(String employeeCode, Long id);
 
     boolean existsByEmailAndIdNot(String email, Long id);
+
+    boolean existsByRole(Role role);
+
+    Optional<Employee> findByEmail(String email);
 }

@@ -1,6 +1,7 @@
 package com.industrial.maintenance.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "employees")
@@ -33,6 +34,9 @@ public class Employee {
     @Column(nullable = false)
     private EmployeeStatus status;
 
+    @JsonIgnore
+    private String passwordHash;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -56,4 +60,7 @@ public class Employee {
 
     public EmployeeStatus getStatus() { return status; }
     public void setStatus(EmployeeStatus status) { this.status = status; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 }

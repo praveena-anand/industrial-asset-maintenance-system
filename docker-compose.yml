@@ -28,6 +28,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/maintenance_db
       SPRING_DATASOURCE_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD:?Please set the DB_PASSWORD environment variable}
+      JWT_SECRET: ${JWT_SECRET:?Please set the JWT_SECRET environment variable}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Please set the ADMIN_PASSWORD environment variable}
     ports:
       - "8080:8080"
 

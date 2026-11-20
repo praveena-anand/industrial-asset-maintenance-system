@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.industrial.maintenance.dto.SetPasswordRequest;
 
 import java.util.List;
 
@@ -48,5 +49,11 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivate(@PathVariable Long id) {
         employeeService.deactivateEmployee(id);
+    }
+
+    @PutMapping("/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void setPassword(@PathVariable Long id, @Valid @RequestBody SetPasswordRequest request) {
+        employeeService.setPassword(id, request.password());
     }
 }

@@ -9,6 +9,7 @@ import com.industrial.maintenance.exception.ResourceNotFoundException;
 import com.industrial.maintenance.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 import com.industrial.maintenance.exception.BusinessRuleException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -17,11 +18,14 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final FactoryService factoryService;
+    private final PasswordEncoder passwordEncoder;
 
     public EmployeeService(EmployeeRepository employeeRepository,
-                           FactoryService factoryService) {
+                           FactoryService factoryService,
+                           PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.factoryService = factoryService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Employee createEmployee(EmployeeRequest request) {
@@ -78,6 +82,12 @@ public class EmployeeService {
         }
         applyRequest(existing, request);
         return employeeRepository.save(existing);
+    }
+
+    public void setPassword(Long id, String rawPassword) {
+        Employee employee = getEmployeeById(id);
+        employee.setPasswordHash(passwordEncoder.encode(rawPassword));
+        employeeRepository.save(employee);
     }
 
     public void deactivateEmployee(Long id) {

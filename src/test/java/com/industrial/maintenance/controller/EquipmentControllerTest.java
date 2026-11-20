@@ -1,5 +1,7 @@
 package com.industrial.maintenance.controller;
 
+import com.industrial.maintenance.config.SecurityConfig;
+import com.industrial.maintenance.config.SecurityErrorHandler;
 import com.industrial.maintenance.dto.EquipmentRequest;
 import com.industrial.maintenance.entity.Equipment;
 import com.industrial.maintenance.entity.EquipmentStatus;
@@ -9,19 +11,28 @@ import com.industrial.maintenance.service.EquipmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EquipmentController.class)
+@Import({SecurityConfig.class, SecurityErrorHandler.class})
+@ActiveProfiles("test")
 class EquipmentControllerTest {
 
     @Autowired
@@ -41,6 +52,44 @@ class EquipmentControllerTest {
             }
             """;
 
+    // A fake logged-in user with the given role
+    private static RequestPostProcessor asRole(String role) {
+        return jwt().authorities(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    // ---------- Security ----------
+
+    @Test
+    void register_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/api/equipment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_JSON))
+                .andExpect(status().isUnauthorized());
+
+        verify(equipmentService, never()).registerEquipment(any());
+    }
+
+    @Test
+    void register_asOperator_returns403() throws Exception {
+        mockMvc.perform(post("/api/equipment")
+                        .with(asRole("OPERATOR"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_JSON))
+                .andExpect(status().isForbidden());
+
+        verify(equipmentService, never()).registerEquipment(any());
+    }
+
+    @Test
+    void getAll_asOperator_returns200() throws Exception {
+        when(equipmentService.getAllEquipment()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/equipment").with(asRole("OPERATOR")))
+                .andExpect(status().isOk());
+    }
+
+    // ---------- Behaviour (as ADMIN) ----------
+
     @Test
     void register_withValidData_returns201() throws Exception {
         Equipment saved = new Equipment();
@@ -51,6 +100,7 @@ class EquipmentControllerTest {
         when(equipmentService.registerEquipment(any(EquipmentRequest.class))).thenReturn(saved);
 
         mockMvc.perform(post("/api/equipment")
+                        .with(asRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_JSON))
                 .andExpect(status().isCreated())
@@ -66,6 +116,7 @@ class EquipmentControllerTest {
                 """;
 
         mockMvc.perform(post("/api/equipment")
+                        .with(asRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest())
@@ -77,6 +128,7 @@ class EquipmentControllerTest {
     @Test
     void register_withMalformedJson_returns400() throws Exception {
         mockMvc.perform(post("/api/equipment")
+                        .with(asRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"name\": \"Broken\" "))
                 .andExpect(status().isBadRequest())
@@ -89,6 +141,7 @@ class EquipmentControllerTest {
                 .thenThrow(new DuplicateEquipmentException("Equipment code EQ2001 already exists"));
 
         mockMvc.perform(post("/api/equipment")
+                        .with(asRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_JSON))
                 .andExpect(status().isConflict())
@@ -102,14 +155,14 @@ class EquipmentControllerTest {
         when(equipmentService.getEquipmentById(99L))
                 .thenThrow(new EquipmentNotFoundException("Equipment with ID 99 not found"));
 
-        mockMvc.perform(get("/api/equipment/99"))
+        mockMvc.perform(get("/api/equipment/99").with(asRole("ADMIN")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Equipment with ID 99 not found"));
     }
 
     @Test
     void getById_withNonNumericId_returns400() throws Exception {
-        mockMvc.perform(get("/api/equipment/abc"))
+        mockMvc.perform(get("/api/equipment/abc").with(asRole("ADMIN")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid value 'abc' for parameter 'id'"));
     }
