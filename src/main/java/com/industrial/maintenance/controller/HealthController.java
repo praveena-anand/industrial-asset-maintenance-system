@@ -16,7 +16,7 @@ public class HealthController {
     public Map<String, String> health() {
         return Map.of(
                 "status", "UP",
-                "application", "Industrial Maintenance System"
+                "application", "Industrial Asset & Maintenance Management System"
         );
     }
 }
