@@ -42,4 +42,47 @@ public class EquipmentService {
                 .orElseThrow(() -> new EquipmentNotFoundException(
                         "Equipment with ID " + id + " not found"));
     }
+
+    public Equipment updateEquipment(Long id, Equipment updated) {
+        Equipment existing = getEquipmentById(id);
+
+        if (equipmentRepository.existsByEquipmentCodeAndIdNot(updated.getEquipmentCode(), id)) {
+            throw new DuplicateEquipmentException(
+                    "Equipment code " + updated.getEquipmentCode() + " already exists");
+        }
+        if (equipmentRepository.existsBySerialNumberAndIdNot(updated.getSerialNumber(), id)) {
+            throw new DuplicateEquipmentException(
+                    "Serial number " + updated.getSerialNumber() + " already exists");
+        }
+
+        existing.setEquipmentCode(updated.getEquipmentCode());
+        existing.setName(updated.getName());
+        existing.setModel(updated.getModel());
+        existing.setSerialNumber(updated.getSerialNumber());
+        existing.setLocation(updated.getLocation());
+        existing.setPurchaseDate(updated.getPurchaseDate());
+        if (updated.getStatus() != null) {
+            existing.setStatus(updated.getStatus());
+        }
+
+        return equipmentRepository.save(existing);
+    }
+
+    public void retireEquipment(Long id) {
+        Equipment equipment = getEquipmentById(id);
+        equipment.setStatus(EquipmentStatus.RETIRED);
+        equipmentRepository.save(equipment);
+    }
+
+    public Equipment getByEquipmentCode(String code) {
+        return equipmentRepository.findByEquipmentCode(code)
+                .orElseThrow(() -> new EquipmentNotFoundException(
+                        "Equipment with code " + code + " not found"));
+    }
+
+    public Equipment getBySerialNumber(String serialNumber) {
+        return equipmentRepository.findBySerialNumber(serialNumber)
+                .orElseThrow(() -> new EquipmentNotFoundException(
+                        "Equipment with serial number " + serialNumber + " not found"));
+    }
 }

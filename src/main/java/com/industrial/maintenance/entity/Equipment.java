@@ -1,6 +1,7 @@
 package com.industrial.maintenance.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 @Entity
@@ -11,19 +12,23 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Equipment code is required")
     @Column(nullable = false, unique = true)
     private String equipmentCode;      // e.g. EQ1001
 
+    @NotBlank(message = "Name is required")
     @Column(nullable = false)
     private String name;               // e.g. Hydraulic Excavator
 
     private String model;              // e.g. EX-200
 
+    @NotBlank(message = "Serial number is required")
     @Column(nullable = false, unique = true)
     private String serialNumber;       // e.g. CATEX200001
 
     private String location;           // e.g. Factory A
 
+    @PastOrPresent(message = "Purchase date cannot be in the future")
     private LocalDate purchaseDate;
 
     @Enumerated(EnumType.STRING)

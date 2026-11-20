@@ -4,6 +4,7 @@ import com.industrial.maintenance.entity.Equipment;
 import com.industrial.maintenance.service.EquipmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class EquipmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Equipment register(@RequestBody Equipment equipment) {
+    public Equipment register(@Valid @RequestBody Equipment equipment) {
         return equipmentService.registerEquipment(equipment);
     }
 
@@ -31,5 +32,26 @@ public class EquipmentController {
     @GetMapping("/{id}")
     public Equipment getById(@PathVariable Long id) {
         return equipmentService.getEquipmentById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Equipment update(@PathVariable Long id, @Valid @RequestBody Equipment equipment) {
+        return equipmentService.updateEquipment(id, equipment);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retire(@PathVariable Long id) {
+        equipmentService.retireEquipment(id);
+    }
+
+    @GetMapping("/code/{code}")
+    public Equipment getByCode(@PathVariable String code) {
+        return equipmentService.getByEquipmentCode(code);
+    }
+
+    @GetMapping("/serial/{serialNumber}")
+    public Equipment getBySerial(@PathVariable String serialNumber) {
+        return equipmentService.getBySerialNumber(serialNumber);
     }
 }
