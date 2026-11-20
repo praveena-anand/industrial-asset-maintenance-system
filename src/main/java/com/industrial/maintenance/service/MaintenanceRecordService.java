@@ -55,6 +55,14 @@ public class MaintenanceRecordService {
                 throw new BusinessRuleException("Service request " + serviceRequest.getId()
                         + " belongs to a different machine");
             }
+            if (serviceRequest.getStatus() != ServiceRequestStatus.COMPLETED) {
+                throw new BusinessRuleException("Service request " + serviceRequest.getId()
+                        + " must be COMPLETED before its work is recorded");
+            }
+            if (recordRepository.existsByServiceRequestId(serviceRequest.getId())) {
+                throw new BusinessRuleException("Service request " + serviceRequest.getId()
+                        + " already has a maintenance record");
+            }
             record.setServiceRequest(serviceRequest);
         }
 
