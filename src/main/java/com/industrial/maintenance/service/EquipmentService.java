@@ -1,7 +1,9 @@
 package com.industrial.maintenance.service;
 
+import com.industrial.maintenance.dto.EquipmentRequest;
 import com.industrial.maintenance.entity.Equipment;
 import com.industrial.maintenance.entity.EquipmentStatus;
+import com.industrial.maintenance.entity.Factory;
 import com.industrial.maintenance.exception.DuplicateEquipmentException;
 import com.industrial.maintenance.exception.EquipmentNotFoundException;
 import com.industrial.maintenance.repository.EquipmentRepository;
@@ -13,20 +15,26 @@ import java.util.List;
 public class EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
+    private final FactoryService factoryService;
 
-    public EquipmentService(EquipmentRepository equipmentRepository) {
+    public EquipmentService(EquipmentRepository equipmentRepository,
+                            FactoryService factoryService) {
         this.equipmentRepository = equipmentRepository;
+        this.factoryService = factoryService;
     }
 
-    public Equipment registerEquipment(Equipment equipment) {
-        if (equipmentRepository.existsByEquipmentCode(equipment.getEquipmentCode())) {
+    public Equipment registerEquipment(EquipmentRequest request) {
+        if (equipmentRepository.existsByEquipmentCode(request.equipmentCode())) {
             throw new DuplicateEquipmentException(
-                    "Equipment code " + equipment.getEquipmentCode() + " already exists");
+                    "Equipment code " + request.equipmentCode() + " already exists");
         }
-        if (equipmentRepository.existsBySerialNumber(equipment.getSerialNumber())) {
+        if (equipmentRepository.existsBySerialNumber(request.serialNumber())) {
             throw new DuplicateEquipmentException(
-                    "Serial number " + equipment.getSerialNumber() + " already exists");
+                    "Serial number " + request.serialNumber() + " already exists");
         }
+
+        Equipment equipment = new Equipment();
+        applyRequest(equipment, request);
         if (equipment.getStatus() == null) {
             equipment.setStatus(EquipmentStatus.OPERATIONAL);
         }
@@ -43,37 +51,6 @@ public class EquipmentService {
                         "Equipment with ID " + id + " not found"));
     }
 
-    public Equipment updateEquipment(Long id, Equipment updated) {
-        Equipment existing = getEquipmentById(id);
-
-        if (equipmentRepository.existsByEquipmentCodeAndIdNot(updated.getEquipmentCode(), id)) {
-            throw new DuplicateEquipmentException(
-                    "Equipment code " + updated.getEquipmentCode() + " already exists");
-        }
-        if (equipmentRepository.existsBySerialNumberAndIdNot(updated.getSerialNumber(), id)) {
-            throw new DuplicateEquipmentException(
-                    "Serial number " + updated.getSerialNumber() + " already exists");
-        }
-
-        existing.setEquipmentCode(updated.getEquipmentCode());
-        existing.setName(updated.getName());
-        existing.setModel(updated.getModel());
-        existing.setSerialNumber(updated.getSerialNumber());
-        existing.setLocation(updated.getLocation());
-        existing.setPurchaseDate(updated.getPurchaseDate());
-        if (updated.getStatus() != null) {
-            existing.setStatus(updated.getStatus());
-        }
-
-        return equipmentRepository.save(existing);
-    }
-
-    public void retireEquipment(Long id) {
-        Equipment equipment = getEquipmentById(id);
-        equipment.setStatus(EquipmentStatus.RETIRED);
-        equipmentRepository.save(equipment);
-    }
-
     public Equipment getByEquipmentCode(String code) {
         return equipmentRepository.findByEquipmentCode(code)
                 .orElseThrow(() -> new EquipmentNotFoundException(
@@ -84,5 +61,42 @@ public class EquipmentService {
         return equipmentRepository.findBySerialNumber(serialNumber)
                 .orElseThrow(() -> new EquipmentNotFoundException(
                         "Equipment with serial number " + serialNumber + " not found"));
+    }
+
+    public Equipment updateEquipment(Long id, EquipmentRequest request) {
+        Equipment existing = getEquipmentById(id);
+
+        if (equipmentRepository.existsByEquipmentCodeAndIdNot(request.equipmentCode(), id)) {
+            throw new DuplicateEquipmentException(
+                    "Equipment code " + request.equipmentCode() + " already exists");
+        }
+        if (equipmentRepository.existsBySerialNumberAndIdNot(request.serialNumber(), id)) {
+            throw new DuplicateEquipmentException(
+                    "Serial number " + request.serialNumber() + " already exists");
+        }
+
+        applyRequest(existing, request);
+        return equipmentRepository.save(existing);
+    }
+
+    public void retireEquipment(Long id) {
+        Equipment equipment = getEquipmentById(id);
+        equipment.setStatus(EquipmentStatus.RETIRED);
+        equipmentRepository.save(equipment);
+    }
+
+    // Copies values from the request onto the entity
+    private void applyRequest(Equipment equipment, EquipmentRequest request) {
+        Factory factory = factoryService.getFactoryById(request.factoryId());
+
+        equipment.setEquipmentCode(request.equipmentCode());
+        equipment.setName(request.name());
+        equipment.setModel(request.model());
+        equipment.setSerialNumber(request.serialNumber());
+        equipment.setPurchaseDate(request.purchaseDate());
+        equipment.setFactory(factory);
+        if (request.status() != null) {
+            equipment.setStatus(request.status());
+        }
     }
 }

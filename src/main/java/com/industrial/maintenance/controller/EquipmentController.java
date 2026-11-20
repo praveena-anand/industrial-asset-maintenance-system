@@ -1,5 +1,6 @@
 package com.industrial.maintenance.controller;
 
+import com.industrial.maintenance.dto.EquipmentRequest;
 import com.industrial.maintenance.entity.Equipment;
 import com.industrial.maintenance.service.EquipmentService;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,8 @@ public class EquipmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Equipment register(@Valid @RequestBody Equipment equipment) {
-        return equipmentService.registerEquipment(equipment);
+    public Equipment register(@Valid @RequestBody EquipmentRequest request) {
+        return equipmentService.registerEquipment(request);
     }
 
     @GetMapping
@@ -35,8 +36,8 @@ public class EquipmentController {
     }
 
     @PutMapping("/{id}")
-    public Equipment update(@PathVariable Long id, @Valid @RequestBody Equipment equipment) {
-        return equipmentService.updateEquipment(id, equipment);
+    public Equipment update(@PathVariable Long id, @Valid @RequestBody EquipmentRequest request) {
+        return equipmentService.updateEquipment(id, request);
     }
 
     @DeleteMapping("/{id}")

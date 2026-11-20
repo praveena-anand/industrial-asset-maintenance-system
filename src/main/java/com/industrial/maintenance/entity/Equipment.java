@@ -1,7 +1,6 @@
 package com.industrial.maintenance.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 @Entity
@@ -12,90 +11,48 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Equipment code is required")
     @Column(nullable = false, unique = true)
-    private String equipmentCode;      // e.g. EQ1001
+    private String equipmentCode;
 
-    @NotBlank(message = "Name is required")
     @Column(nullable = false)
-    private String name;               // e.g. Hydraulic Excavator
+    private String name;
 
-    private String model;              // e.g. EX-200
+    private String model;
 
-    @NotBlank(message = "Serial number is required")
     @Column(nullable = false, unique = true)
-    private String serialNumber;       // e.g. CATEX200001
+    private String serialNumber;
 
-    private String location;           // e.g. Factory A
+    @ManyToOne
+    @JoinColumn(name = "factory_id", nullable = false)
+    private Factory factory;
 
-    @PastOrPresent(message = "Purchase date cannot be in the future")
     private LocalDate purchaseDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EquipmentStatus status;
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getEquipmentCode() { return equipmentCode; }
+    public void setEquipmentCode(String equipmentCode) { this.equipmentCode = equipmentCode; }
 
-    public String getEquipmentCode() {
-        return equipmentCode;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setEquipmentCode(String equipmentCode) {
-        this.equipmentCode = equipmentCode;
-    }
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
 
-    public String getName() {
-        return name;
-    }
+    public String getSerialNumber() { return serialNumber; }
+    public void setSerialNumber(String serialNumber) { this.serialNumber = serialNumber; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public Factory getFactory() { return factory; }
+    public void setFactory(Factory factory) { this.factory = factory; }
 
-    public String getModel() {
-        return model;
-    }
+    public LocalDate getPurchaseDate() { return purchaseDate; }
+    public void setPurchaseDate(LocalDate purchaseDate) { this.purchaseDate = purchaseDate; }
 
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public LocalDate getPurchaseDate() {
-        return purchaseDate;
-    }
-
-    public void setPurchaseDate(LocalDate purchaseDate) {
-        this.purchaseDate = purchaseDate;
-    }
-
-    public EquipmentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(EquipmentStatus status) {
-        this.status = status;
-    }
+    public EquipmentStatus getStatus() { return status; }
+    public void setStatus(EquipmentStatus status) { this.status = status; }
 }
