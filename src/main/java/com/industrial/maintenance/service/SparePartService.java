@@ -1,5 +1,6 @@
 package com.industrial.maintenance.service;
 
+import com.industrial.maintenance.dto.SparePartRequest;
 import com.industrial.maintenance.entity.SparePart;
 import com.industrial.maintenance.exception.DuplicateResourceException;
 import com.industrial.maintenance.exception.ResourceNotFoundException;
@@ -17,11 +18,16 @@ public class SparePartService {
         this.sparePartRepository = sparePartRepository;
     }
 
-    public SparePart createPart(SparePart part) {
-        if (sparePartRepository.existsByPartNumber(part.getPartNumber())) {
+    public SparePart createPart(SparePartRequest request) {
+        if (sparePartRepository.existsByPartNumber(request.partNumber())) {
             throw new DuplicateResourceException(
-                    "Part number " + part.getPartNumber() + " already exists");
+                    "Part number " + request.partNumber() + " already exists");
         }
+
+        SparePart part = new SparePart();
+        part.setPartNumber(request.partNumber());
+        part.setName(request.name());
+        part.setUnitPrice(request.unitPrice());
         return sparePartRepository.save(part);
     }
 

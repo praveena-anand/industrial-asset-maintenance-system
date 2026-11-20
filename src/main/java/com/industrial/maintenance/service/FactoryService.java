@@ -1,5 +1,6 @@
 package com.industrial.maintenance.service;
 
+import com.industrial.maintenance.dto.FactoryRequest;
 import com.industrial.maintenance.entity.Factory;
 import com.industrial.maintenance.exception.DuplicateResourceException;
 import com.industrial.maintenance.exception.ResourceNotFoundException;
@@ -17,11 +18,17 @@ public class FactoryService {
         this.factoryRepository = factoryRepository;
     }
 
-    public Factory createFactory(Factory factory) {
-        if (factoryRepository.existsByFactoryCode(factory.getFactoryCode())) {
+    public Factory createFactory(FactoryRequest request) {
+        if (factoryRepository.existsByFactoryCode(request.factoryCode())) {
             throw new DuplicateResourceException(
-                    "Factory code " + factory.getFactoryCode() + " already exists");
+                    "Factory code " + request.factoryCode() + " already exists");
         }
+
+        Factory factory = new Factory();          // always a brand-new object, so no ID from the client
+        factory.setFactoryCode(request.factoryCode());
+        factory.setName(request.name());
+        factory.setCity(request.city());
+        factory.setAddress(request.address());
         return factoryRepository.save(factory);
     }
 

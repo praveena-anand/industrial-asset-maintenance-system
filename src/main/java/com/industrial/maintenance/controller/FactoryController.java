@@ -1,6 +1,7 @@
 package com.industrial.maintenance.controller;
 
-import com.industrial.maintenance.entity.Factory;
+import com.industrial.maintenance.dto.FactoryRequest;
+import com.industrial.maintenance.dto.FactoryResponse;
 import com.industrial.maintenance.service.FactoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,17 +23,19 @@ public class FactoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Factory create(@Valid @RequestBody Factory factory) {
-        return factoryService.createFactory(factory);
+    public FactoryResponse create(@Valid @RequestBody FactoryRequest request) {
+        return FactoryResponse.from(factoryService.createFactory(request));
     }
 
     @GetMapping
-    public List<Factory> getAll() {
-        return factoryService.getAllFactories();
+    public List<FactoryResponse> getAll() {
+        return factoryService.getAllFactories().stream()
+                .map(FactoryResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Factory getById(@PathVariable Long id) {
-        return factoryService.getFactoryById(id);
+    public FactoryResponse getById(@PathVariable Long id) {
+        return FactoryResponse.from(factoryService.getFactoryById(id));
     }
 }

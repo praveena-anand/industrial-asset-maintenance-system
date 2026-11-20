@@ -172,6 +172,22 @@ class MaintenanceWorkflowIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void createFactory_cannotOverwriteAnExistingFactoryById() throws Exception {
+        String attack = """
+                { "id": %d, "factoryCode": "FAC-OTHER", "name": "Overwritten", "city": "Elsewhere" }
+                """.formatted(factory.getId());
+
+        mockMvc.perform(post("/api/factories")
+                .with(asRole("ADMIN"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(attack));
+
+        Factory original = factoryRepository.findById(factory.getId()).orElseThrow();
+        assertEquals("FAC-TEST", original.getFactoryCode());
+        assertEquals("Test Plant", original.getName());
+    }
+
     private Employee createEmployee(String code, String email, Role role) {
         Employee employee = new Employee();
         employee.setEmployeeCode(code);
