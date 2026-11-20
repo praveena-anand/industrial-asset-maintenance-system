@@ -2,7 +2,7 @@ package com.industrial.maintenance.controller;
 
 import com.industrial.maintenance.dto.CompleteServiceRequest;
 import com.industrial.maintenance.dto.ServiceRequestRequest;
-import com.industrial.maintenance.entity.ServiceRequest;
+import com.industrial.maintenance.dto.ServiceRequestResponse;
 import com.industrial.maintenance.entity.ServiceRequestStatus;
 import com.industrial.maintenance.service.ServiceRequestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,50 +25,52 @@ public class ServiceRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ServiceRequest create(@Valid @RequestBody ServiceRequestRequest request) {
-        return requestService.createRequest(request);
+    public ServiceRequestResponse create(@Valid @RequestBody ServiceRequestRequest request) {
+        return ServiceRequestResponse.from(requestService.createRequest(request));
     }
 
     @GetMapping
-    public List<ServiceRequest> getAll(@RequestParam(required = false) ServiceRequestStatus status,
-                                       @RequestParam(required = false) Long equipmentId,
-                                       @RequestParam(required = false) Long technicianId) {
-        return requestService.getRequests(status, equipmentId, technicianId);
+    public List<ServiceRequestResponse> getAll(@RequestParam(required = false) ServiceRequestStatus status,
+                                               @RequestParam(required = false) Long equipmentId,
+                                               @RequestParam(required = false) Long technicianId) {
+        return requestService.getRequests(status, equipmentId, technicianId).stream()
+                .map(ServiceRequestResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ServiceRequest getById(@PathVariable Long id) {
-        return requestService.getRequestById(id);
+    public ServiceRequestResponse getById(@PathVariable Long id) {
+        return ServiceRequestResponse.from(requestService.getRequestById(id));
     }
 
     @PatchMapping("/{id}/assign")
-    public ServiceRequest assign(@PathVariable Long id, @RequestParam Long technicianId) {
-        return requestService.assignTechnician(id, technicianId);
+    public ServiceRequestResponse assign(@PathVariable Long id, @RequestParam Long technicianId) {
+        return ServiceRequestResponse.from(requestService.assignTechnician(id, technicianId));
     }
 
     @PostMapping("/{id}/start")
-    public ServiceRequest start(@PathVariable Long id) {
-        return requestService.startWork(id);
+    public ServiceRequestResponse start(@PathVariable Long id) {
+        return ServiceRequestResponse.from(requestService.startWork(id));
     }
 
     @PostMapping("/{id}/hold")
-    public ServiceRequest hold(@PathVariable Long id) {
-        return requestService.putOnHold(id);
+    public ServiceRequestResponse hold(@PathVariable Long id) {
+        return ServiceRequestResponse.from(requestService.putOnHold(id));
     }
 
     @PostMapping("/{id}/resume")
-    public ServiceRequest resume(@PathVariable Long id) {
-        return requestService.resumeWork(id);
+    public ServiceRequestResponse resume(@PathVariable Long id) {
+        return ServiceRequestResponse.from(requestService.resumeWork(id));
     }
 
     @PostMapping("/{id}/complete")
-    public ServiceRequest complete(@PathVariable Long id,
-                                   @Valid @RequestBody CompleteServiceRequest completion) {
-        return requestService.completeRequest(id, completion);
+    public ServiceRequestResponse complete(@PathVariable Long id,
+                                           @Valid @RequestBody CompleteServiceRequest completion) {
+        return ServiceRequestResponse.from(requestService.completeRequest(id, completion));
     }
 
     @PostMapping("/{id}/cancel")
-    public ServiceRequest cancel(@PathVariable Long id) {
-        return requestService.cancelRequest(id);
+    public ServiceRequestResponse cancel(@PathVariable Long id) {
+        return ServiceRequestResponse.from(requestService.cancelRequest(id));
     }
 }
