@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long> {
@@ -24,6 +25,8 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
                                                    Long id);
 
     long countByStatusIn(List<ServiceRequestStatus> statuses);
+
+    long countByEquipmentIdAndCreatedAtAfter(Long equipmentId, LocalDateTime since);
 
     @Query("""
             SELECT new com.industrial.maintenance.dto.EquipmentBreakdownCount(

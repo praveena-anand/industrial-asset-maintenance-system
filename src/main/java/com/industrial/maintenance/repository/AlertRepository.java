@@ -1,6 +1,7 @@
 package com.industrial.maintenance.repository;
 
 import com.industrial.maintenance.entity.Alert;
+import com.industrial.maintenance.entity.AlertSeverity;
 import com.industrial.maintenance.entity.AlertStatus;
 import com.industrial.maintenance.entity.AlertType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,7 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     long countByEquipmentIdAndStatusIn(Long equipmentId, List<AlertStatus> statuses);
 
     long countByStatusIn(List<AlertStatus> statuses);
+
+    long countByEquipmentIdAndSeverityAndStatusIn(Long equipmentId, AlertSeverity severity,
+                                                  List<AlertStatus> statuses);
 }
