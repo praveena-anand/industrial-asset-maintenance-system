@@ -10,6 +10,7 @@ import com.industrial.maintenance.repository.SensorReadingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,14 +22,18 @@ public class SensorReadingService {
 
     private final SensorReadingRepository readingRepository;
     private final EquipmentService equipmentService;
+    private final AlertService alertService;
 
     public SensorReadingService(SensorReadingRepository readingRepository,
-                                EquipmentService equipmentService) {
+                                EquipmentService equipmentService,
+                                AlertService alertService) {
         this.readingRepository = readingRepository;
         this.equipmentService = equipmentService;
+        this.alertService = alertService;
     }
 
-    public SensorReading recordReading(Long equipmentId, SensorReadingRequest request) {
+    @Transactional
+    public SensorReading recordReading(Long equipmentId, SensorReadingRequest request, Long submittedById) {
         Equipment equipment = equipmentService.getEquipmentById(equipmentId);
 
         if (equipment.getStatus() == EquipmentStatus.RETIRED) {
@@ -55,6 +60,8 @@ public class SensorReadingService {
         log.debug("Recorded reading for {}: temp={} vib={} oil={} hours={}",
                 equipment.getEquipmentCode(), saved.getTemperatureCelsius(),
                 saved.getVibrationMmPerSec(), saved.getOilPressureBar(), saved.getOperatingHours());
+
+        alertService.evaluate(saved, submittedById);
         return saved;
     }
 
@@ -66,7 +73,7 @@ public class SensorReadingService {
     }
 
     public List<SensorReading> getRecentReadings(Long equipmentId) {
-        equipmentService.getEquipmentById(equipmentId);   // 404 if the machine doesn't exist
+        equipmentService.getEquipmentById(equipmentId);
         return readingRepository.findTop20ByEquipmentIdOrderByRecordedAtDesc(equipmentId);
     }
 }

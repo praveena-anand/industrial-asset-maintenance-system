@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -26,8 +28,18 @@ public class SensorReadingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SensorReadingResponse submit(@PathVariable Long equipmentId,
-                                        @Valid @RequestBody SensorReadingRequest request) {
-        return SensorReadingResponse.from(readingService.recordReading(equipmentId, request));
+                                        @Valid @RequestBody SensorReadingRequest request,
+                                        @AuthenticationPrincipal Jwt jwt) {
+        Long submittedById = employeeIdFrom(jwt);
+        return SensorReadingResponse.from(readingService.recordReading(equipmentId, request, submittedById));
+    }
+
+    private Long employeeIdFrom(Jwt jwt) {
+        if (jwt == null) {
+            return null;
+        }
+        Number employeeId = jwt.getClaim("employeeId");
+        return employeeId != null ? employeeId.longValue() : null;
     }
 
     @Operation(summary = "Get the latest reading for a machine")
