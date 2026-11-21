@@ -121,6 +121,16 @@ Requires Java 21+, PostgreSQL and the environment variables above.
 1. Create a database named `maintenance_db`
 2. Run `./mvnw spring-boot:run` (or `mvnw.cmd spring-boot:run` on Windows), or run `MaintenanceApplication` from your IDE
 
+## Deployment
+
+The application has been deployed to an Azure virtual machine (Ubuntu 24.04, India South Central):
+
+- The same `docker compose` setup runs the API and PostgreSQL on the VM
+- Production secrets are generated on the server with `openssl rand` and stored in a `.env` file readable only by the deploy user
+- The Azure network security group allows only SSH (22) and the API (8080); the database and ML ports are not exposed to the internet
+- The ML service is optional: if it is unavailable, the API keeps working and readings are stored without an anomaly prediction
+
+
 ## Using the API
 
 Interactive documentation: **http://localhost:8080/swagger-ui.html**
@@ -140,24 +150,6 @@ curl -X POST http://localhost:8080/api/auth/login \
 curl http://localhost:8080/api/equipment \
   -H "Authorization: Bearer <accessToken>"
 ```
-
-## Sensor simulator
-
-`simulator/sensor_simulator.py` (Python 3.9+, standard library only) acts as a machine's sensor gateway.
-
-1. As an admin, create an employee with role `SENSOR` and set its password
-2. Set the credentials and start the simulator:
-
-```bash
-export SENSOR_EMAIL=sensor-eq1001@maintenance.local      # PowerShell: $env:SENSOR_EMAIL = "..."
-export SENSOR_PASSWORD=<sensor password>
-python simulator/sensor_simulator.py --equipment-id 1 --mode overheating --interval 2
-```
-
-Modes: `normal`, `overheating` (temperature rises steadily) and `wear` (vibration rises steadily).
-Use `--start-hours` to begin above the machine's last recorded operating hours.
-
-Alert thresholds are configured in `application.properties` under `app.thresholds.*`.
 
 
 ### Main endpoints
@@ -190,6 +182,26 @@ All errors use the same structure:
   "path": "/api/equipment"
 }
 ```
+
+## Sensor simulator
+
+`simulator/sensor_simulator.py` (Python 3.9+, standard library only) acts as a machine's sensor gateway.
+
+1. As an admin, create an employee with role `SENSOR` and set its password
+2. Set the credentials and start the simulator:
+
+```bash
+export SENSOR_EMAIL=sensor-eq1001@maintenance.local      # PowerShell: $env:SENSOR_EMAIL = "..."
+export SENSOR_PASSWORD=<sensor password>
+python simulator/sensor_simulator.py --equipment-id 1 --mode overheating --interval 2
+```
+
+Modes: `normal`, `overheating` (temperature rises steadily) and `wear` (vibration rises steadily).
+Use `--start-hours` to begin above the machine's last recorded operating hours.
+
+Alert thresholds are configured in `application.properties` under `app.thresholds.*`.
+
+
 
 ## Running the tests
 
