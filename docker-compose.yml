@@ -17,6 +17,13 @@ services:
       timeout: 5s
       retries: 10
 
+  ml:
+    build: ./ml-service
+    image: maintenance-ml
+    container_name: maintenance-ml
+    ports:
+      - "8000:8000"
+
   app:
     build: .
     image: maintenance-app
@@ -30,6 +37,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Please set the DB_PASSWORD environment variable}
       JWT_SECRET: ${JWT_SECRET:?Please set the JWT_SECRET environment variable}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Please set the ADMIN_PASSWORD environment variable}
+      APP_ML_BASE_URL: http://ml:8000
     ports:
       - "8080:8080"
 

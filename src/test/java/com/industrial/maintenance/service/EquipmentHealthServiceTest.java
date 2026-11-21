@@ -53,12 +53,18 @@ class EquipmentHealthServiceTest {
     }
 
     private void counts(long criticalAlerts, long overdueTasks, long recentBreakdowns) {
+        counts(criticalAlerts, overdueTasks, recentBreakdowns, 0);
+    }
+
+    private void counts(long criticalAlerts, long overdueTasks, long recentBreakdowns, long recentAnomalies) {
         when(alertRepository.countByEquipmentIdAndSeverityAndStatusIn(eq(1L), eq(AlertSeverity.CRITICAL), anyList()))
                 .thenReturn(criticalAlerts);
         when(scheduleService.countOverdueForEquipment(1L))
                 .thenReturn(overdueTasks);
         when(serviceRequestRepository.countByEquipmentIdAndCreatedAtAfter(eq(1L), any(LocalDateTime.class)))
                 .thenReturn(recentBreakdowns);
+        when(readingRepository.countByEquipmentIdAndAnomalyTrueAndRecordedAtAfter(eq(1L), any(LocalDateTime.class)))
+                .thenReturn(recentAnomalies);
     }
 
     @Test
@@ -116,5 +122,16 @@ class EquipmentHealthServiceTest {
         assertEquals(100, health.score());
         assertNull(health.lastReadingAt());
         assertTrue(health.factors().contains("No sensor readings available"));
+    }
+
+    @Test
+    void recentAnomalies_lowerTheScore_evenWithNormalThresholds() {
+        latestReading(80.0, 3.0, 4.2);    // all sensors within limits
+        counts(0, 0, 0, 2);               // but 2 anomalous readings today: -10
+
+        EquipmentHealthResponse health = healthService.getHealth(1L);
+
+        assertEquals(90, health.score());
+        assertTrue(health.factors().contains("2 anomalous reading(s) in the last 24 hours (-10)"));
     }
 }
