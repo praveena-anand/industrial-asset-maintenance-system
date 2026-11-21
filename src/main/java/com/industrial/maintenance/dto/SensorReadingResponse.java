@@ -12,7 +12,10 @@ public record SensorReadingResponse(
         Double temperatureCelsius,
         Double vibrationMmPerSec,
         Double oilPressureBar,
-        Double operatingHours
+        Double operatingHours,
+        Boolean anomaly,
+        Double anomalyScore,
+        String anomalyModelVersion
 ) {
 
     public static SensorReadingResponse from(SensorReading reading) {
@@ -24,7 +27,10 @@ public record SensorReadingResponse(
                 reading.getTemperatureCelsius(),
                 reading.getVibrationMmPerSec(),
                 reading.getOilPressureBar(),
-                reading.getOperatingHours()
+                reading.getOperatingHours(),
+                reading.getAnomaly(),
+                reading.getAnomalyScore(),
+                reading.getAnomalyModelVersion()
         );
     }
 }

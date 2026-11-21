@@ -13,6 +13,9 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
 
     List<SensorReading> findTop20ByEquipmentIdOrderByRecordedAtDesc(Long equipmentId);
 
-    List<SensorReading> findByEquipmentIdAndRecordedAtAfterOrderByRecordedAtAsc(Long equipmentId,
-                                                                                LocalDateTime since);
+    List<SensorReading> findByEquipmentIdAndRecordedAtAfterOrderByRecordedAtAsc(Long equipmentId, LocalDateTime since);
+
+    List<SensorReading> findTop20ByEquipmentIdAndAnomalyTrueOrderByRecordedAtDesc(Long equipmentId);
+
+    long countByEquipmentIdAndAnomalyTrueAndRecordedAtAfter(Long equipmentId, LocalDateTime since);
 }

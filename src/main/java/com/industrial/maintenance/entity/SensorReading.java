@@ -31,6 +31,12 @@ public class SensorReading {
     @Column(nullable = false)
     private Double operatingHours;         // total running hours so far, e.g. 1240.5
 
+    private Boolean anomaly;               // null = no prediction available
+
+    private Double anomalyScore;
+
+    private String anomalyModelVersion;
+
     public Long getId() { return id; }
 
     public Equipment getEquipment() { return equipment; }
@@ -50,4 +56,13 @@ public class SensorReading {
 
     public Double getOperatingHours() { return operatingHours; }
     public void setOperatingHours(Double operatingHours) { this.operatingHours = operatingHours; }
+
+    public Boolean getAnomaly() { return anomaly; }
+    public void setAnomaly(Boolean anomaly) { this.anomaly = anomaly; }
+
+    public Double getAnomalyScore() { return anomalyScore; }
+    public void setAnomalyScore(Double anomalyScore) { this.anomalyScore = anomalyScore; }
+
+    public String getAnomalyModelVersion() { return anomalyModelVersion; }
+    public void setAnomalyModelVersion(String anomalyModelVersion) { this.anomalyModelVersion = anomalyModelVersion; }
 }

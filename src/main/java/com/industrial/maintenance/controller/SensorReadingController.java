@@ -48,4 +48,12 @@ public class SensorReadingController {
                 .map(SensorReadingResponse::from)
                 .toList();
     }
+
+    @Operation(summary = "Get recent readings flagged as anomalous by the ML model")
+    @GetMapping("/anomalies")
+    public List<SensorReadingResponse> anomalies(@PathVariable Long equipmentId) {
+        return readingService.getRecentAnomalies(equipmentId).stream()
+                .map(SensorReadingResponse::from)
+                .toList();
+    }
 }

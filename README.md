@@ -19,6 +19,7 @@ preventive maintenance, breakdown reports, technicians, spare parts and repair h
 - **Sensor monitoring**: machines (or the included simulator) submit temperature, vibration, oil pressure and operating hours through a least-privilege `SENSOR` role
 - **Automatic alerts**: configurable warning and critical thresholds raise alerts without duplicates, escalate warnings, and open a CRITICAL service request automatically
 - **Equipment health score**: a 0–100 score per machine (GOOD / FAIR / AT_RISK) with an explanation of every deduction
+- **ML anomaly detection**: a Python service (FastAPI + scikit-learn Isolation Forest) flags unusual combinations of readings that fixed thresholds miss; the API keeps working if the ML service is unavailable
 
 ## Tech stack
 
@@ -33,6 +34,7 @@ preventive maintenance, breakdown reports, technicians, spare parts and repair h
 | Testing | JUnit 5, Mockito, Spring Boot Test, MockMvc |
 | Build | Maven |
 | Containers | Docker, Docker Compose |
+| Machine learning | Python, FastAPI, scikit-learn (Isolation Forest) |
 
 ## Architecture
 

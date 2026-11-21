@@ -25,6 +25,8 @@ public class EquipmentHealthService {
     private static final int PER_RECENT_BREAKDOWN = 5;
     private static final int MAX_PER_FACTOR = 20;
     private static final int BREAKDOWN_WINDOW_DAYS = 90;
+    private static final int PER_RECENT_ANOMALY = 5;
+    private static final int ANOMALY_WINDOW_HOURS = 24;
 
     private final EquipmentService equipmentService;
     private final SensorReadingRepository readingRepository;
@@ -80,6 +82,12 @@ public class EquipmentHealthService {
         } else {
             factors.add("No sensor readings available");
         }
+
+        // ML: readings flagged as anomalous recently
+        long recentAnomalies = readingRepository.countByEquipmentIdAndAnomalyTrueAndRecordedAtAfter(
+                id, LocalDateTime.now().minusHours(ANOMALY_WINDOW_HOURS));
+        score -= countPenalty(recentAnomalies, PER_RECENT_ANOMALY,
+                "anomalous reading(s) in the last " + ANOMALY_WINDOW_HOURS + " hours", factors);
 
         // 2. Unresolved critical alerts
         long criticalAlerts = alertRepository.countByEquipmentIdAndSeverityAndStatusIn(
