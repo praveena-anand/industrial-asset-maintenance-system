@@ -16,6 +16,9 @@ public record MaintenanceScheduleResponse(
         Integer frequencyDays,
         LocalDate nextDueDate,
         LocalDate lastCompletedDate,
+        Double frequencyHours,
+        Double nextDueHours,
+        Double lastCompletedHours,
         String technicianCode,
         String technicianName,
         boolean active,
@@ -25,9 +28,6 @@ public record MaintenanceScheduleResponse(
     public static MaintenanceScheduleResponse from(MaintenanceSchedule schedule) {
         Equipment equipment = schedule.getEquipment();
         Employee technician = schedule.getAssignedTechnician();
-        boolean overdue = schedule.isActive()
-                && schedule.getNextDueDate() != null
-                && schedule.getNextDueDate().isBefore(LocalDate.now());
 
         return new MaintenanceScheduleResponse(
                 schedule.getId(),
@@ -39,10 +39,13 @@ public record MaintenanceScheduleResponse(
                 schedule.getFrequencyDays(),
                 schedule.getNextDueDate(),
                 schedule.getLastCompletedDate(),
+                schedule.getFrequencyHours(),
+                schedule.getNextDueHours(),
+                schedule.getLastCompletedHours(),
                 technician != null ? technician.getEmployeeCode() : null,
                 technician != null ? technician.getFullName() : null,
                 schedule.isActive(),
-                overdue
+                schedule.isDueByDate(LocalDate.now())    // hours are added in the next step
         );
     }
 }
