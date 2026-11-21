@@ -29,6 +29,8 @@ public class SecurityConfig {
 
     private final SecurityErrorHandler securityErrorHandler;
 
+    private static final String[] STAFF = {"ADMIN", "MANAGER", "TECHNICIAN", "OPERATOR"};
+
     public SecurityConfig(SecurityErrorHandler securityErrorHandler) {
         this.securityErrorHandler = securityErrorHandler;
     }
@@ -81,6 +83,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
+                        // Sensor readings: devices may submit, and nothing else
+                        .requestMatchers(HttpMethod.POST, "/api/equipment/*/readings").hasAnyRole("SENSOR", "ADMIN")
+
                         // Dashboard
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/**").hasAnyRole("MANAGER", "ADMIN")
 
@@ -88,12 +93,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/employees/**", "/api/factories/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/employees/**", "/api/factories/**").hasRole("ADMIN")
 
-                        // Equipment and spare parts (includes maintenance history/cost GETs)
-                        .requestMatchers(HttpMethod.GET, "/api/equipment/**", "/api/spare-parts/**").authenticated()
+                        // Equipment and spare parts (includes readings, history and cost GETs)
+                        .requestMatchers(HttpMethod.GET, "/api/equipment/**", "/api/spare-parts/**").hasAnyRole(STAFF)
                         .requestMatchers("/api/equipment/**", "/api/spare-parts/**").hasRole("ADMIN")
 
                         // Service requests
-                        .requestMatchers(HttpMethod.GET, "/api/service-requests/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/service-requests/**").hasAnyRole(STAFF)
                         .requestMatchers(HttpMethod.POST, "/api/service-requests").hasAnyRole("OPERATOR", "MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/service-requests/*/assign").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/service-requests/*/cancel").hasAnyRole("MANAGER", "ADMIN")
@@ -103,16 +108,16 @@ public class SecurityConfig {
                         .hasAnyRole("TECHNICIAN", "MANAGER")
 
                         // Maintenance schedules
-                        .requestMatchers(HttpMethod.GET, "/api/maintenance-schedules/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/maintenance-schedules/**").hasAnyRole(STAFF)
                         .requestMatchers(HttpMethod.POST, "/api/maintenance-schedules/*/complete").hasAnyRole("TECHNICIAN", "MANAGER")
                         .requestMatchers("/api/maintenance-schedules/**").hasAnyRole("MANAGER", "ADMIN")
 
                         // Maintenance records
-                        .requestMatchers(HttpMethod.GET, "/api/maintenance-records/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/maintenance-records/**").hasAnyRole(STAFF)
                         .requestMatchers(HttpMethod.POST, "/api/maintenance-records").hasAnyRole("TECHNICIAN", "MANAGER")
 
-                        // Anything not listed above: must at least be logged in
-                        .anyRequest().authenticated()
+                        // Anything not listed above: staff only
+                        .anyRequest().hasAnyRole(STAFF)
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
