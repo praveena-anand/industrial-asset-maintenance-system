@@ -1,5 +1,6 @@
 package com.industrial.maintenance.service;
 
+import com.industrial.maintenance.client.AnomalyDetectionClient;
 import com.industrial.maintenance.dto.SensorReadingRequest;
 import com.industrial.maintenance.entity.Equipment;
 import com.industrial.maintenance.entity.EquipmentStatus;
@@ -23,13 +24,16 @@ public class SensorReadingService {
     private final SensorReadingRepository readingRepository;
     private final EquipmentService equipmentService;
     private final AlertService alertService;
+    private final AnomalyDetectionClient anomalyDetectionClient;
 
     public SensorReadingService(SensorReadingRepository readingRepository,
                                 EquipmentService equipmentService,
-                                AlertService alertService) {
+                                AlertService alertService,
+                                AnomalyDetectionClient anomalyDetectionClient) {
         this.readingRepository = readingRepository;
         this.equipmentService = equipmentService;
         this.alertService = alertService;
+        this.anomalyDetectionClient = anomalyDetectionClient;
     }
 
     @Transactional
@@ -56,6 +60,19 @@ public class SensorReadingService {
         reading.setOilPressureBar(request.oilPressureBar());
         reading.setOperatingHours(request.operatingHours());
 
+        // Ask the ML service whether this reading is anomalous (empty if it is disabled or unavailable)
+        anomalyDetectionClient.predict(reading).ifPresent(prediction -> {
+            reading.setAnomaly(prediction.anomaly());
+            reading.setAnomalyScore(prediction.anomalyScore());
+            reading.setAnomalyModelVersion(prediction.modelVersion());
+            if (prediction.anomaly()) {
+                log.warn("Anomaly detected on {}: score {} (temp={}, vib={}, oil={})",
+                        equipment.getEquipmentCode(), prediction.anomalyScore(),
+                        reading.getTemperatureCelsius(), reading.getVibrationMmPerSec(),
+                        reading.getOilPressureBar());
+            }
+        });
+
         SensorReading saved = readingRepository.save(reading);
         log.debug("Recorded reading for {}: temp={} vib={} oil={} hours={}",
                 equipment.getEquipmentCode(), saved.getTemperatureCelsius(),
@@ -75,6 +92,11 @@ public class SensorReadingService {
     public List<SensorReading> getRecentReadings(Long equipmentId) {
         equipmentService.getEquipmentById(equipmentId);
         return readingRepository.findTop20ByEquipmentIdOrderByRecordedAtDesc(equipmentId);
+    }
+
+    public List<SensorReading> getRecentAnomalies(Long equipmentId) {
+        equipmentService.getEquipmentById(equipmentId);
+        return readingRepository.findTop20ByEquipmentIdAndAnomalyTrueOrderByRecordedAtDesc(equipmentId);
     }
 
     /** The machine's operating hours from its latest reading, or null if it has never reported. */
