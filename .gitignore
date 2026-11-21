@@ -37,3 +37,6 @@ logs/
 hs_err_pid*.log
 
 .env
+
+.venv/
+__pycache__/
