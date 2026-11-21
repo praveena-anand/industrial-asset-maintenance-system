@@ -4,13 +4,11 @@ import com.industrial.maintenance.config.SensorThresholds;
 import com.industrial.maintenance.dto.EquipmentHealthResponse;
 import com.industrial.maintenance.entity.*;
 import com.industrial.maintenance.repository.AlertRepository;
-import com.industrial.maintenance.repository.MaintenanceScheduleRepository;
 import com.industrial.maintenance.repository.SensorReadingRepository;
 import com.industrial.maintenance.repository.ServiceRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,20 +29,20 @@ public class EquipmentHealthService {
     private final EquipmentService equipmentService;
     private final SensorReadingRepository readingRepository;
     private final AlertRepository alertRepository;
-    private final MaintenanceScheduleRepository scheduleRepository;
+    private final MaintenanceScheduleService scheduleService;
     private final ServiceRequestRepository serviceRequestRepository;
     private final SensorThresholds thresholds;
 
     public EquipmentHealthService(EquipmentService equipmentService,
                                   SensorReadingRepository readingRepository,
                                   AlertRepository alertRepository,
-                                  MaintenanceScheduleRepository scheduleRepository,
+                                  MaintenanceScheduleService scheduleService,
                                   ServiceRequestRepository serviceRequestRepository,
                                   SensorThresholds thresholds) {
         this.equipmentService = equipmentService;
         this.readingRepository = readingRepository;
         this.alertRepository = alertRepository;
-        this.scheduleRepository = scheduleRepository;
+        this.scheduleService = scheduleService;
         this.serviceRequestRepository = serviceRequestRepository;
         this.thresholds = thresholds;
     }
@@ -88,9 +86,8 @@ public class EquipmentHealthService {
                 id, AlertSeverity.CRITICAL, AlertService.UNRESOLVED);
         score -= countPenalty(criticalAlerts, PER_CRITICAL_ALERT, "unresolved critical alert(s)", factors);
 
-        // 3. Overdue preventive maintenance
-        long overdueTasks = scheduleRepository.countByEquipmentIdAndActiveTrueAndNextDueDateBefore(
-                id, LocalDate.now());
+        // 3. Overdue preventive maintenance (by date or by operating hours)
+        long overdueTasks = scheduleService.countOverdueForEquipment(id);
         score -= countPenalty(overdueTasks, PER_OVERDUE_TASK, "overdue maintenance task(s)", factors);
 
         // 4. Recent breakdowns

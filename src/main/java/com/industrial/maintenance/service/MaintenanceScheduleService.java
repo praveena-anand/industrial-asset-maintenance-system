@@ -74,8 +74,29 @@ public class MaintenanceScheduleService {
                         "Maintenance schedule with ID " + id + " not found"));
     }
 
+    /** Active schedules that are overdue by date OR by operating hours. */
     public List<MaintenanceSchedule> getOverdueSchedules() {
-        return scheduleRepository.findByActiveTrueAndNextDueDateBefore(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        return scheduleRepository.findByActiveTrue().stream()
+                .filter(schedule -> schedule.isOverdue(today, getCurrentHours(schedule)))
+                .toList();
+    }
+
+    public long countAllOverdue() {
+        return getOverdueSchedules().size();
+    }
+
+    public long countOverdueForEquipment(Long equipmentId) {
+        LocalDate today = LocalDate.now();
+        Double currentHours = sensorReadingService.getCurrentOperatingHours(equipmentId);
+        return scheduleRepository.findByEquipmentIdAndActiveTrue(equipmentId).stream()
+                .filter(schedule -> schedule.isOverdue(today, currentHours))
+                .count();
+    }
+
+    /** The current operating hours of the schedule's machine, or null if it has never reported. */
+    public Double getCurrentHours(MaintenanceSchedule schedule) {
+        return sensorReadingService.getCurrentOperatingHours(schedule.getEquipment().getId());
     }
 
     public List<MaintenanceSchedule> getUpcomingSchedules(int days) {
