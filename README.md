@@ -16,6 +16,9 @@ preventive maintenance, breakdown reports, technicians, spare parts and repair h
 - **Manager dashboard**: equipment availability, open requests, overdue tasks, total spend, most frequently failing machines and technician workload
 - **Security**: BCrypt password hashing, JWT authentication and role-based access control
 - **Consistent error handling**: structured JSON errors with correct HTTP status codes (400, 401, 403, 404, 409, 422, 500)
+- **Sensor monitoring**: machines (or the included simulator) submit temperature, vibration, oil pressure and operating hours through a least-privilege `SENSOR` role
+- **Automatic alerts**: configurable warning and critical thresholds raise alerts without duplicates, escalate warnings, and open a CRITICAL service request automatically
+- **Equipment health score**: a 0–100 score per machine (GOOD / FAIR / AT_RISK) with an explanation of every deduction
 
 ## Tech stack
 
@@ -136,6 +139,25 @@ curl http://localhost:8080/api/equipment \
   -H "Authorization: Bearer <accessToken>"
 ```
 
+## Sensor simulator
+
+`simulator/sensor_simulator.py` (Python 3.9+, standard library only) acts as a machine's sensor gateway.
+
+1. As an admin, create an employee with role `SENSOR` and set its password
+2. Set the credentials and start the simulator:
+
+```bash
+export SENSOR_EMAIL=sensor-eq1001@maintenance.local      # PowerShell: $env:SENSOR_EMAIL = "..."
+export SENSOR_PASSWORD=<sensor password>
+python simulator/sensor_simulator.py --equipment-id 1 --mode overheating --interval 2
+```
+
+Modes: `normal`, `overheating` (temperature rises steadily) and `wear` (vibration rises steadily).
+Use `--start-hours` to begin above the machine's last recorded operating hours.
+
+Alert thresholds are configured in `application.properties` under `app.thresholds.*`.
+
+
 ### Main endpoints
 
 | Area | Endpoints |
@@ -149,6 +171,9 @@ curl http://localhost:8080/api/equipment \
 | Maintenance records | `/api/maintenance-records`, `/api/spare-parts` |
 | Dashboard | `GET /api/dashboard` |
 | Health | `GET /api/health` (public) |
+| Sensor readings | `POST /api/equipment/{id}/readings` (SENSOR), `GET /api/equipment/{id}/readings`, `/readings/latest` |
+| Alerts | `GET /api/alerts`, `GET /api/equipment/{id}/alerts`, `PATCH /api/alerts/{id}/acknowledge`, `/resolve` |
+| Health | `GET /api/equipment/health`, `GET /api/equipment/{id}/health` |
 
 ### Error format
 
@@ -196,8 +221,6 @@ src/main/java/com/industrial/maintenance/
 
 ## Possible extensions
 
-- Simulated IoT sensor readings (temperature, operating hours) and equipment health indicators
-- Automatic maintenance alerts based on sensor thresholds
 - Database migrations with Flyway
 - Pagination for list endpoints
 - Cloud deployment
