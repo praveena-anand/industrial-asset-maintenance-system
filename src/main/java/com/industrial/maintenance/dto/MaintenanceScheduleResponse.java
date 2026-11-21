@@ -16,18 +16,28 @@ public record MaintenanceScheduleResponse(
         Integer frequencyDays,
         LocalDate nextDueDate,
         LocalDate lastCompletedDate,
+        Double frequencyHours,
+        Double nextDueHours,
+        Double lastCompletedHours,
+        Double currentOperatingHours,
         String technicianCode,
         String technicianName,
         boolean active,
-        boolean overdue
+        boolean overdue,
+        String dueReason          // "DATE", "HOURS", "DATE_AND_HOURS" or null
 ) {
 
-    public static MaintenanceScheduleResponse from(MaintenanceSchedule schedule) {
+    public static MaintenanceScheduleResponse from(MaintenanceSchedule schedule, Double currentHours) {
         Equipment equipment = schedule.getEquipment();
         Employee technician = schedule.getAssignedTechnician();
-        boolean overdue = schedule.isActive()
-                && schedule.getNextDueDate() != null
-                && schedule.getNextDueDate().isBefore(LocalDate.now());
+
+        LocalDate today = LocalDate.now();
+        boolean dueByDate = schedule.isDueByDate(today);
+        boolean dueByHours = schedule.isDueByHours(currentHours);
+        String dueReason = dueByDate && dueByHours ? "DATE_AND_HOURS"
+                : dueByDate ? "DATE"
+                : dueByHours ? "HOURS"
+                : null;
 
         return new MaintenanceScheduleResponse(
                 schedule.getId(),
@@ -39,10 +49,15 @@ public record MaintenanceScheduleResponse(
                 schedule.getFrequencyDays(),
                 schedule.getNextDueDate(),
                 schedule.getLastCompletedDate(),
+                schedule.getFrequencyHours(),
+                schedule.getNextDueHours(),
+                schedule.getLastCompletedHours(),
+                currentHours,
                 technician != null ? technician.getEmployeeCode() : null,
                 technician != null ? technician.getFullName() : null,
                 schedule.isActive(),
-                overdue
+                dueByDate || dueByHours,
+                dueReason
         );
     }
 }

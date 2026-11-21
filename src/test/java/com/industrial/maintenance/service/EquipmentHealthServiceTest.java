@@ -4,7 +4,6 @@ import com.industrial.maintenance.config.SensorThresholds;
 import com.industrial.maintenance.dto.EquipmentHealthResponse;
 import com.industrial.maintenance.entity.*;
 import com.industrial.maintenance.repository.AlertRepository;
-import com.industrial.maintenance.repository.MaintenanceScheduleRepository;
 import com.industrial.maintenance.repository.SensorReadingRepository;
 import com.industrial.maintenance.repository.ServiceRequestRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -27,7 +25,7 @@ class EquipmentHealthServiceTest {
     @Mock private EquipmentService equipmentService;
     @Mock private SensorReadingRepository readingRepository;
     @Mock private AlertRepository alertRepository;
-    @Mock private MaintenanceScheduleRepository scheduleRepository;
+    @Mock private MaintenanceScheduleService scheduleService;
     @Mock private ServiceRequestRepository serviceRequestRepository;
 
     private EquipmentHealthService healthService;
@@ -36,7 +34,7 @@ class EquipmentHealthServiceTest {
     void setUp() {
         SensorThresholds thresholds = new SensorThresholds(100.0, 110.0, 7.1, 11.2, 3.0, 2.0);
         healthService = new EquipmentHealthService(equipmentService, readingRepository,
-                alertRepository, scheduleRepository, serviceRequestRepository, thresholds);
+                alertRepository, scheduleService, serviceRequestRepository, thresholds);
 
         Equipment equipment = new Equipment();
         equipment.setId(1L);
@@ -57,7 +55,7 @@ class EquipmentHealthServiceTest {
     private void counts(long criticalAlerts, long overdueTasks, long recentBreakdowns) {
         when(alertRepository.countByEquipmentIdAndSeverityAndStatusIn(eq(1L), eq(AlertSeverity.CRITICAL), anyList()))
                 .thenReturn(criticalAlerts);
-        when(scheduleRepository.countByEquipmentIdAndActiveTrueAndNextDueDateBefore(eq(1L), any(LocalDate.class)))
+        when(scheduleService.countOverdueForEquipment(1L))
                 .thenReturn(overdueTasks);
         when(serviceRequestRepository.countByEquipmentIdAndCreatedAtAfter(eq(1L), any(LocalDateTime.class)))
                 .thenReturn(recentBreakdowns);

@@ -10,7 +10,7 @@ preventive maintenance, breakdown reports, technicians, spare parts and repair h
 
 - **Equipment management**: register, update, search by code or serial number, and retire machines (soft delete)
 - **Employees and factories**: roles (Admin, Manager, Technician, Operator) assigned to factory locations
-- **Preventive maintenance**: recurring schedules, upcoming and overdue tasks, automatic next-due-date calculation
+- **Preventive maintenance**: recurring schedules by calendar interval and, optionally, by operating hours ("every 500 hours or 6 months, whichever comes first"); overdue detection uses the machine's latest sensor reading
 - **Breakdown workflow**: service requests move through `OPEN → ASSIGNED → IN_PROGRESS → (ON_HOLD) → COMPLETED / CANCELLED`, enforced as a state machine; machine status updates automatically
 - **Maintenance history**: completed work, spare parts used (with price snapshots) and total cost per machine
 - **Manager dashboard**: equipment availability, open requests, overdue tasks, total spend, most frequently failing machines and technician workload

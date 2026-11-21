@@ -76,4 +76,11 @@ public class SensorReadingService {
         equipmentService.getEquipmentById(equipmentId);
         return readingRepository.findTop20ByEquipmentIdOrderByRecordedAtDesc(equipmentId);
     }
+
+    /** The machine's operating hours from its latest reading, or null if it has never reported. */
+    public Double getCurrentOperatingHours(Long equipmentId) {
+        return readingRepository.findFirstByEquipmentIdOrderByRecordedAtDesc(equipmentId)
+                .map(SensorReading::getOperatingHours)
+                .orElse(null);
+    }
 }

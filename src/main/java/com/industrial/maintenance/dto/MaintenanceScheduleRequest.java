@@ -21,5 +21,8 @@ public record MaintenanceScheduleRequest(
         @NotNull(message = "Next due date is required")
         LocalDate nextDueDate,
 
-        Long technicianId
+        Long technicianId,
+
+        @Positive(message = "Frequency in hours must be greater than 0")
+        Double frequencyHours          // optional: also due every N operating hours
 ) {}
