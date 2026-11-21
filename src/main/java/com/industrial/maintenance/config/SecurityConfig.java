@@ -27,9 +27,9 @@ import java.nio.charset.StandardCharsets;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final SecurityErrorHandler securityErrorHandler;
-
     private static final String[] STAFF = {"ADMIN", "MANAGER", "TECHNICIAN", "OPERATOR"};
+
+    private final SecurityErrorHandler securityErrorHandler;
 
     public SecurityConfig(SecurityErrorHandler securityErrorHandler) {
         this.securityErrorHandler = securityErrorHandler;
@@ -93,7 +93,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/employees/**", "/api/factories/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/employees/**", "/api/factories/**").hasRole("ADMIN")
 
-                        // Equipment and spare parts (includes readings, history and cost GETs)
+                        // Equipment and spare parts (includes readings, alerts, history and cost GETs)
                         .requestMatchers(HttpMethod.GET, "/api/equipment/**", "/api/spare-parts/**").hasAnyRole(STAFF)
                         .requestMatchers("/api/equipment/**", "/api/spare-parts/**").hasRole("ADMIN")
 
@@ -115,6 +115,11 @@ public class SecurityConfig {
                         // Maintenance records
                         .requestMatchers(HttpMethod.GET, "/api/maintenance-records/**").hasAnyRole(STAFF)
                         .requestMatchers(HttpMethod.POST, "/api/maintenance-records").hasAnyRole("TECHNICIAN", "MANAGER")
+
+                        // Alerts
+                        .requestMatchers(HttpMethod.GET, "/api/alerts/**").hasAnyRole(STAFF)
+                        .requestMatchers(HttpMethod.PATCH, "/api/alerts/*/acknowledge", "/api/alerts/*/resolve")
+                        .hasAnyRole("TECHNICIAN", "MANAGER", "ADMIN")
 
                         // Anything not listed above: staff only
                         .anyRequest().hasAnyRole(STAFF)

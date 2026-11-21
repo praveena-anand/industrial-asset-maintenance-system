@@ -3,11 +3,14 @@ package com.industrial.maintenance.service;
 import com.industrial.maintenance.config.SensorThresholds;
 import com.industrial.maintenance.dto.ServiceRequestRequest;
 import com.industrial.maintenance.entity.*;
+import com.industrial.maintenance.exception.BusinessRuleException;
+import com.industrial.maintenance.exception.ResourceNotFoundException;
 import com.industrial.maintenance.repository.AlertRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,15 +23,23 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private final ServiceRequestService serviceRequestService;
+    private final EquipmentService equipmentService;
+    private final EmployeeService employeeService;
     private final SensorThresholds thresholds;
 
     public AlertService(AlertRepository alertRepository,
                         ServiceRequestService serviceRequestService,
+                        EquipmentService equipmentService,
+                        EmployeeService employeeService,
                         SensorThresholds thresholds) {
         this.alertRepository = alertRepository;
         this.serviceRequestService = serviceRequestService;
+        this.equipmentService = equipmentService;
+        this.employeeService = employeeService;
         this.thresholds = thresholds;
     }
+
+    // ---------- Evaluating readings ----------
 
     /** Checks one reading against every threshold. */
     public void evaluate(SensorReading reading, Long reporterId) {
@@ -49,7 +60,6 @@ public class AlertService {
                        double warningLimit, double criticalLimit, boolean higherIsWorse,
                        String messageFormat) {
 
-        // 1. How bad is this value?
         AlertSeverity severity;
         double limit;
         if (crosses(value, criticalLimit, higherIsWorse)) {
@@ -59,13 +69,12 @@ public class AlertService {
             severity = AlertSeverity.WARNING;
             limit = warningLimit;
         } else {
-            return;   // within normal range
+            return;
         }
 
         Equipment equipment = reading.getEquipment();
         String message = messageFormat.formatted(value, limit);
 
-        // 2. Is there already an unresolved alert of this type for this machine?
         Optional<Alert> existing = alertRepository.findFirstByEquipmentIdAndTypeAndStatusIn(
                 equipment.getId(), type, UNRESOLVED);
 
@@ -80,10 +89,9 @@ public class AlertService {
                 alertRepository.save(alert);
                 log.warn("Alert {} on {} escalated to CRITICAL: {}", alert.getId(), equipment.getEquipmentCode(), message);
             }
-            return;   // otherwise: already alerted, don't create a duplicate
+            return;
         }
 
-        // 3. Create a new alert
         Alert alert = new Alert();
         alert.setEquipment(equipment);
         alert.setType(type);
@@ -118,5 +126,50 @@ public class AlertService {
                 "[Automatic] " + alert.getMessage(),
                 Priority.CRITICAL));
         alert.setServiceRequest(request);
+    }
+
+    // ---------- Viewing and handling alerts ----------
+
+    public List<Alert> getUnresolvedAlerts() {
+        return alertRepository.findByStatusInOrderByCreatedAtDesc(UNRESOLVED);
+    }
+
+    public List<Alert> getAlertsForEquipment(Long equipmentId) {
+        equipmentService.getEquipmentById(equipmentId);   // 404 if the machine doesn't exist
+        return alertRepository.findByEquipmentIdOrderByCreatedAtDesc(equipmentId);
+    }
+
+    public Alert getAlertById(Long id) {
+        return alertRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Alert with ID " + id + " not found"));
+    }
+
+    public Alert acknowledge(Long id, Long employeeId) {
+        Alert alert = getAlertById(id);
+        if (alert.getStatus() != AlertStatus.OPEN) {
+            throw new BusinessRuleException("Only OPEN alerts can be acknowledged (alert "
+                    + id + " is " + alert.getStatus() + ")");
+        }
+        alert.setStatus(AlertStatus.ACKNOWLEDGED);
+        alert.setAcknowledgedAt(LocalDateTime.now());
+        if (employeeId != null) {
+            alert.setAcknowledgedBy(employeeService.getEmployeeById(employeeId));
+        }
+        Alert saved = alertRepository.save(alert);
+        log.info("Alert {} acknowledged by {}", id,
+                saved.getAcknowledgedBy() != null ? saved.getAcknowledgedBy().getEmployeeCode() : "unknown");
+        return saved;
+    }
+
+    public Alert resolve(Long id) {
+        Alert alert = getAlertById(id);
+        if (alert.getStatus() == AlertStatus.RESOLVED) {
+            throw new BusinessRuleException("Alert " + id + " is already resolved");
+        }
+        alert.setStatus(AlertStatus.RESOLVED);
+        alert.setResolvedAt(LocalDateTime.now());
+        Alert saved = alertRepository.save(alert);
+        log.info("Alert {} on {} resolved", id, alert.getEquipment().getEquipmentCode());
+        return saved;
     }
 }

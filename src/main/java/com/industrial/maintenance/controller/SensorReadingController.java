@@ -1,5 +1,6 @@
 package com.industrial.maintenance.controller;
 
+import com.industrial.maintenance.config.JwtClaims;
 import com.industrial.maintenance.dto.SensorReadingRequest;
 import com.industrial.maintenance.dto.SensorReadingResponse;
 import com.industrial.maintenance.service.SensorReadingService;
@@ -30,16 +31,8 @@ public class SensorReadingController {
     public SensorReadingResponse submit(@PathVariable Long equipmentId,
                                         @Valid @RequestBody SensorReadingRequest request,
                                         @AuthenticationPrincipal Jwt jwt) {
-        Long submittedById = employeeIdFrom(jwt);
+        Long submittedById = JwtClaims.employeeId(jwt);
         return SensorReadingResponse.from(readingService.recordReading(equipmentId, request, submittedById));
-    }
-
-    private Long employeeIdFrom(Jwt jwt) {
-        if (jwt == null) {
-            return null;
-        }
-        Number employeeId = jwt.getClaim("employeeId");
-        return employeeId != null ? employeeId.longValue() : null;
     }
 
     @Operation(summary = "Get the latest reading for a machine")
